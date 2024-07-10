@@ -25,7 +25,7 @@ jobs:
         sudo apt-get install -y libfuzzy-dev libfuzzy2
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install -r requirements-unittest.txt
+        pip install -r tests/requirements.txt
     - name: Unit Test
       run: |
         [ ! -d "$(pwd)/tests" ] && echo "No tests found" && exit
