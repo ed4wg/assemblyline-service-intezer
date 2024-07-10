@@ -1,9 +1,12 @@
+import os
+
 from datetime import datetime
 from enum import Enum
 from http import HTTPStatus
 from time import sleep, time
 from typing import Any, Dict, List, Optional, Set
 
+from assemblyline.common import forge
 from assemblyline.common.exceptions import NonRecoverableError
 from assemblyline.common.str_utils import truncate
 from assemblyline.odm.models.ontology.results.process import Process as ProcessModel
@@ -32,6 +35,8 @@ from intezer_sdk.errors import InsufficientQuotaError, ServerError, UnsupportedO
 from requests import ConnectionError, HTTPError
 from safe_families import SAFE_FAMILIES
 from signatures import GENERIC_HEURISTIC_ID, get_attack_ids_for_signature_name, get_heur_id_for_signature_name
+
+
 
 global_safelist: Optional[Dict[str, Dict[str, List[str]]]] = None
 
@@ -494,6 +499,7 @@ class Intezer(ServiceBase):
         super().__init__(config)
         self.log.debug("Initializing the Intezer service...")
         self.client: Optional[ALIntezerApi] = None
+        self.privileged = os.environ.get("PRIVILEGED", "false").lower()
 
     def start(self) -> None:
         global global_safelist
@@ -971,9 +977,35 @@ class Intezer(ServiceBase):
 
                 if self.config.get("download_subfiles", True):
                     if can_we_download_files or self.config.get("try_to_download_every_file", False):
-                        file_was_downloaded = self.client.download_file_by_sha256(sub_sha256, self.working_directory)
+
+                        file_was_downloaded = False
+                        path = f"{os.path.join(self.working_directory, sub_sha256)}.sample"
+
+                        self.log.warning("DEBUG: inside sub-file-analysis handler.") # TODO remove
+
+                        if self.privileged == "true":
+                            self.log.warning("DEBUG: Inside privileged service.") # TODO remove
+
+                            # Attempt to download from AL4 filestore first.
+                            # This prevents un-necessary hit against user's quota with Intezer
+                            fs = forge.get_filestore()
+                            if fs.exists(sub_sha256):
+                                self.log.warning("DEBUG: File found in datastore.") # TODO remove
+                                fs.download(sub_sha256, path)
+                                if os.path.exists(path):
+                                    self.log.warning("DEBUG: File was downloaded successfully.") # TODO remove
+                                    file_was_downloaded = True
+                                else:
+                                    self.log.warning("File was not downloaded from the filestore.")
+                            else:
+                                self.log.warning("DEBUG: File NOT found in datastore.") # TODO remove
+
+                        # if file was not downloaded via the filestore, attempt to download from  Intezer.
+                        if not file_was_downloaded:
+                            self.log.warning("DEBUG: file_was_downloaded = false -- use Intezer to download") # TODO remove
+                            file_was_downloaded = self.client.download_file_by_sha256(sub_sha256, self.working_directory)
+
                         if file_was_downloaded:
-                            path = f"{self.working_directory}/{sub_sha256}.sample"
                             try:
                                 request.add_extracted(
                                     path,
