@@ -983,6 +983,7 @@ class Intezer(ServiceBase):
 
                         self.log.warning(f"DEBUG: inside sub-file-analysis handler. {sub_sha256}") # TODO remove
 
+                        self.log.warning(f"DEBUG: working_dir files: {os.listdir(self.working_directory)}")
                         if os.path.exists(path):
                             self.log.warning("DEBUG: file already found locally, no need to download again..") # TODO remove
                             file_was_downloaded = True
