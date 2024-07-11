@@ -36,8 +36,6 @@ from requests import ConnectionError, HTTPError
 from safe_families import SAFE_FAMILIES
 from signatures import GENERIC_HEURISTIC_ID, get_attack_ids_for_signature_name, get_heur_id_for_signature_name
 
-
-
 global_safelist: Optional[Dict[str, Dict[str, List[str]]]] = None
 
 UNINTERESTING_ANALYSIS_KEYS = [
