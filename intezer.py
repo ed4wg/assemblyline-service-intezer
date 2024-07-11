@@ -983,27 +983,32 @@ class Intezer(ServiceBase):
 
                         self.log.warning(f"DEBUG: inside sub-file-analysis handler. {sub_sha256}") # TODO remove
 
-                        if self.privileged == "true":
-                            self.log.warning("DEBUG: Inside privileged service.") # TODO remove
+                        if os.path.exists(path):
+                            self.log.warning("DEBUG: file already found locally, no need to download again..") # TODO remove
+                            file_was_downloaded = True
+                        else:
 
-                            # Attempt to download from AL4 filestore first.
-                            # This prevents un-necessary hit against user's quota with Intezer
-                            fs = forge.get_filestore()
-                            if fs.exists(sub_sha256):
-                                self.log.warning("DEBUG: File found in datastore.") # TODO remove
-                                fs.download(sub_sha256, path)
-                                if os.path.exists(path):
-                                    self.log.warning("DEBUG: File was downloaded successfully.") # TODO remove
-                                    file_was_downloaded = True
+                            if self.privileged == "true":
+                                self.log.warning("DEBUG: Inside privileged service.") # TODO remove
+
+                                # Attempt to download from AL4 filestore first.
+                                # This prevents un-necessary hit against user's quota with Intezer
+                                fs = forge.get_filestore()
+                                if fs.exists(sub_sha256):
+                                    self.log.warning("DEBUG: File found in datastore.") # TODO remove
+                                    fs.download(sub_sha256, path)
+                                    if os.path.exists(path):
+                                        self.log.warning("DEBUG: File was downloaded successfully.") # TODO remove
+                                        file_was_downloaded = True
+                                    else:
+                                        self.log.warning("File was not downloaded from the filestore.")
                                 else:
-                                    self.log.warning("File was not downloaded from the filestore.")
-                            else:
-                                self.log.warning("DEBUG: File NOT found in datastore.") # TODO remove
+                                    self.log.warning("DEBUG: File NOT found in datastore.") # TODO remove
 
-                        # if file was not downloaded via the filestore, attempt to download from Intezer.
-                        if not file_was_downloaded:
-                            self.log.warning("DEBUG: file_was_downloaded = false -- use Intezer to download") # TODO remove
-                            file_was_downloaded = self.client.download_file_by_sha256(sub_sha256, self.working_directory)
+                            # if file was not downloaded via the filestore, attempt to download from Intezer.
+                            if not file_was_downloaded:
+                                self.log.warning("DEBUG: file_was_downloaded = false -- use Intezer to download") # TODO remove
+                                file_was_downloaded = self.client.download_file_by_sha256(sub_sha256, self.working_directory)
 
                         if file_was_downloaded:
                             try:
