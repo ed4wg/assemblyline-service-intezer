@@ -981,7 +981,7 @@ class Intezer(ServiceBase):
                         file_was_downloaded = False
                         path = f"{os.path.join(self.working_directory, sub_sha256)}.sample"
 
-                        self.log.warning("DEBUG: inside sub-file-analysis handler.") # TODO remove
+                        self.log.warning(f"DEBUG: inside sub-file-analysis handler. {sub_sha256}") # TODO remove
 
                         if self.privileged == "true":
                             self.log.warning("DEBUG: Inside privileged service.") # TODO remove
@@ -1000,7 +1000,7 @@ class Intezer(ServiceBase):
                             else:
                                 self.log.warning("DEBUG: File NOT found in datastore.") # TODO remove
 
-                        # if file was not downloaded via the filestore, attempt to download from  Intezer.
+                        # if file was not downloaded via the filestore, attempt to download from Intezer.
                         if not file_was_downloaded:
                             self.log.warning("DEBUG: file_was_downloaded = false -- use Intezer to download") # TODO remove
                             file_was_downloaded = self.client.download_file_by_sha256(sub_sha256, self.working_directory)
